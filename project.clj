@@ -16,6 +16,11 @@
                  [org.slf4j/jul-to-slf4j "1.7.12"]
                  [org.slf4j/jcl-over-slf4j "1.7.12"]
                  [org.slf4j/log4j-over-slf4j "1.7.12"]
+
+                 ;; Component
+                 [com.stuartsierra/component "0.3.1"]
+
+                 ;; Datomic
                  [com.datomic/datomic-free "0.9.5359"]]
   :min-lein-version "2.0.0"
   :resource-paths ["config", "resources"]
