@@ -3,7 +3,8 @@
             [io.pedestal.http.route :as route]
             [io.pedestal.http.body-params :as body-params]
             [io.pedestal.http.route.definition :refer [defroutes]]
-            [ring.util.response :as ring-resp]))
+            [ring.util.response :as ring-resp]
+            [clojure.java.io :as io]))
 
 (defn about-page
   [request]
@@ -13,7 +14,9 @@
 
 (defn home-page
   [request]
-  (ring-resp/response "Hello World!"))
+  (ring-resp/response
+    (slurp (io/file
+             (io/resource "public/index.html")))))
 
 (defroutes routes
   ;; Defines "/" and "/about" routes with their associated :get handlers.

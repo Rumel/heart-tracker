@@ -4,6 +4,8 @@
   :license {:name "Eclipse Public License"
             :url "http://www.eclipse.org/legal/epl-v10.html"}
   :dependencies [[org.clojure/clojure "1.7.0"]
+                 [org.clojure/clojurescript "1.7.170"]
+
                  [io.pedestal/pedestal.service "0.4.1"]
 
                  ;; Remove this line and uncomment one of the next lines to
@@ -21,7 +23,12 @@
                  [com.stuartsierra/component "0.3.1"]
 
                  ;; Datomic
-                 [com.datomic/datomic-free "0.9.5359"]]
+                 [com.datomic/datomic-free "0.9.5359"]
+
+                 ;; Om/Figwheel
+                 [org.omcljs/om "1.0.0-alpha34"]
+                 [figwheel-sidecar "0.5.3-1"]
+                 [sablono "0.7.1"]]
   :min-lein-version "2.0.0"
   :resource-paths ["config", "resources"]
   :profiles {:dev {:aliases {"run-dev" ["trampoline" "run" "-m" "heart-tracker.server/run-dev"]}
