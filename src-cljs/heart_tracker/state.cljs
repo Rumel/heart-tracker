@@ -2,7 +2,8 @@
 
 (def app-state
   (atom
-    {:current/user
+    {:app/page :dashboard
+     :current/user
                       {:user/emailAddress "tyler@givestack.com"
                        :user/apiKey       "abc1234"
                        :user/bpResults    [[:bpResults/by-id 1]
