@@ -7,6 +7,12 @@
 
 (enable-console-print!)
 
+(defn chart-data
+  [bpResults]
+  (into []
+        (map (fn [result]
+               [(el/format-date (:user/dateTaken result)) (:user/heartRate result)]) bpResults)))
+
 (defui BpResults
   static om/Ident
   (ident [_ {:keys [db/id]}]
@@ -15,9 +21,13 @@
   (query [_]
     [:db/id :user/heartRate :user/systolic :user/diastolic :user/dateTaken])
   Object
+  (initLocalState [this]
+    {:systolic ""
+     :diastolic ""
+     :heartRate ""
+     :dateTaken (js/moment.)})
   (render [this]
     (let [props (om/props this)]
-      (println "Props -> " props)
       (html
         [:.conatainer-fluid
          [:.row
@@ -25,16 +35,45 @@
            [:h1.page-header "Heart Information"]]]
          [:.row
           [:.col-sm-4
-           (el/bp-form this props)]]
-         [:.row
-          [:.col-lg-6
+           (el/bp-form this props)]
+          [:.col-sm-8
            [:h2 "Results"]
            (el/bp-table this props)]]]))))
 
 (defui Dashboard
   Object
+  (initLocalState [_]
+    {:flot nil})
+  (componentDidMount [this]
+    (let [data (some-> this
+                   om/props
+                   :current/user
+                   :user/bpResults
+                       chart-data)
+          f (.plot js/jQuery (gdom/getElement "flot-line-chart")
+                    (clj->js [data])
+                   #js {:label "Heart Rate History"})]
+      (println "data-> " data)
+      (om/update-state! this assoc :flot f)))
+  (componentDidUpdate [this prevProps prevState]
+    (let [props (om/props this)]
+      (println "Props ->" props)))
   (render [this]
-    (html [:h1 "Dashboard"])))
+    (html [:.container-fluid
+           [:.row
+            [:col-lg-12
+             [:h1.page-header "Dashboard"]]]
+           [:.row
+            [:.col-lg-12
+             [:.panel.panel-primary
+              [:.panel-heading
+               [:h3.panel-title [:i.fa.fa-heart " Heart History"]]]
+              [:.panel-body
+               [:.flot-chart
+                [:#flot-line-chart.flot-chart-content
+                 {:style {:padding  "0px"
+                          :position "relative"}}]]]]]]])))
+
 
 (def page
   {:dashboard  Dashboard
@@ -44,9 +83,18 @@
   (zipmap (keys page)
           (map om/factory (vals page))))
 
-(def page->functions
+(defn page->functions
+  [c]
   {:heart-info
-   {:add-info (fn [c systolic diastolic heart-rate])}})
+   {:add-info (fn [systolic diastolic heart-rate date-taken]
+                (om/transact! c `[(add/bpResult
+                                    {:systolic ~systolic
+                                     :diastolic ~diastolic
+                                     :heartRate ~heart-rate
+                                     :dateTaken ~date-taken
+                                     :db/id ~(om/tempid)})]))
+    :delete-fn (fn [id]
+                 (om/transact! c `[(remove/bpResult {:db/id ~id}) :current/user]))}})
 
 (defui RootView
   static om/IQuery
@@ -60,12 +108,15 @@
     {:user-menu-open? false})
   (render [this]
     (let [props (om/props this)
-          active-component (page->component (:app/page props))]
+          page (:app/page props)
+          active-component (page->component page)]
       (html
         [:div#wrapper
          (el/navbar this props)
          [:div#page-wrapper
-          (active-component props)]]))))
+          (active-component (om/computed
+                              props
+                              (get (page->functions this) page {})))]]))))
 
 
 

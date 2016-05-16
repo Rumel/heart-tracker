@@ -25,10 +25,21 @@
    :action (fn []
              (swap! state assoc :app/page page))})
 
+(defmethod mutate 'remove/bpResult
+  [{:keys [state]} _ {:keys [db/id]}]
+  {:value {:keys [:app/page]}
+   :action (fn []
+             (swap! state
+                    (fn [st]
+                      (-> st
+                          (update-in [:bpResults/by-id] dissoc id)
+                          (update-in [:current/user :user/bpResults]
+                                     #(remove #{[:bpResults/by-id id]} %))))))})
 (defmethod mutate 'add/bpResult
-  [{:keys [state]} _ {:keys [id systolic diastolic heartRate]}]
+  [{:keys [state]} _ {:keys [db/id systolic diastolic heartRate dateTaken]}]
   {:value  {:keys [:user/bpResults]}
    :action (fn []
+             (println "ID:" id)
              (swap! state
                     (fn [st]
                       (-> st
@@ -36,7 +47,7 @@
                                   {:user/systolic systolic
                                    :user/diastolic diastolic
                                    :user/heartRate heartRate
-                                   :user/dateTaken (js/Date.)
+                                   :user/dateTaken dateTaken
                                    :db/id id})
                           (update-in [:current/user :user/bpResults]
                                      conj [:bpResults/by-id id])))))})

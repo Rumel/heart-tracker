@@ -28,6 +28,9 @@
                  ;; Om/Figwheel
                  [org.omcljs/om "1.0.0-alpha34"]
                  [figwheel-sidecar "0.5.3-1"]
+                 [cljsjs/react-datepicker "0.15.2-0"]
+                 [cljsjs/moment "2.10.6-4"]
+                 [cljsjs/flot "0.8.3-0"]
                  [sablono "0.7.1"]]
   :min-lein-version "2.0.0"
   :resource-paths ["config", "resources"]

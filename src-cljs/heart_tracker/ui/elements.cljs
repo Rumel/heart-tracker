@@ -1,53 +1,105 @@
 (ns heart-tracker.ui.elements
   (:require [sablono.core :refer-macros [html]]
-            [om.next :as om]))
+            [om.next :as om]
+            cljsjs.react-datepicker)
+  (:import (goog.date DateTime)))
 
+
+(defn format-date
+  [d]
+  (.format (js/moment d) "MM/DD/YYYY"))
 
 (defmulti user-menu (fn [_ props]
                       (if (contains? props :current/user)
                         :logged-in
                         :logged-out)))
 
+(defn change
+  [c k e]
+  (om/update-state! c assoc k (.. e -target -value)))
+
+(defn clear-fields
+  [c]
+  (om/update-state! c
+                    (fn [st]
+                      (-> st
+                          (assoc :systolic "")
+                          (assoc :diastolic "")
+                          (assoc :heartRate "")
+                          (assoc :user/dateTaken "")))))
+
+(defn date-picker [props]
+  (.createElement js/React js/DatePicker (clj->js props)))
+
+(defn date-change [c]
+  (fn [date]
+    (om/update-state! c assoc :dateTaken date)))
+
 (defn bp-form
-  [c props]
-  (html
-    [:.panel.panel-primary
-     [:.panel-heading
-      [:h3.panel-title "Add Heart Info"]]
-     [:.panel-body
-      [:form
-       [:.form-group
-        [:label "Systolic"]
-        [:input.form-control {:placeholder "Systolic"}]]
-       [:.form-group
-        [:label "Diastolic"]
-        [:input.form-control {:placeholder "Diastolic"}]]
-       [:.form-group
-        [:label "Heart Rate"]
-        [:input.form-control {:placeholder "Heart Rate"}]]]]
-     [:a {:href "#"}
-      [:.panel-footer
-       [:span.pull-left "Add Record"]
-       [:span.pull-right
-        [:i.fa.fa-arrow-circle-right]]
-       [:.clearfix]]]]))
+  [c pros]
+  (let [{:keys [systolic diastolic heartRate dateTaken]} (om/get-state c)
+        {:keys [add-info]} (om/get-computed c)]
+    (html
+      [:.panel.panel-primary
+       [:.panel-heading
+        [:h3.panel-title "Add Heart Info"]]
+       [:.panel-body
+        [:form
+         [:.form-group
+          [:label "Systolic"]
+          [:input.form-control {:value       systolic
+                                :on-change   #(change c :systolic %)
+                                :placeholder "Systolic"}]]
+         [:.form-group
+          [:label "Diastolic"]
+          [:input.form-control {:value       diastolic
+                                :on-change   #(change c :diastolic %)
+                                :placeholder "Diastolic"}]]
+         [:.form-group
+          [:label "Heart Rate"]
+          [:input.form-control {:value       heartRate
+                                :on-change   #(change c :heartRate %)
+                                :placeholder "Heart Rate"}]]
+         [:.form-group
+          [:label "Date Taken"]
+          (date-picker {:className "form-control"
+                        :selected  (om/get-state c :dateTaken)
+                        :onChange  (date-change c)})]]]
+       [:a
+        {:href     "#"
+         :on-click #(do
+                     (.preventDefault %)
+                     (add-info (js/parseInt systolic)
+                               (js/parseInt diastolic)
+                               (js/parseInt heartRate)
+                               (.toDate dateTaken))
+                     (clear-fields c))}
+        [:.panel-footer
+         [:span.pull-left "Add Record"]
+         [:span.pull-right
+          [:i.fa.fa-arrow-circle-right]]
+         [:.clearfix]]]])))
+
 
 (defn bp-result
-  [{:keys [user/systolic user/diastolic user/dateTaken user/heartRate]}]
-  (let [style (cond-> {}
+  [{:keys [db/id user/systolic user/diastolic user/dateTaken user/heartRate] :as props}]
+  (let [style (cond-> {:key id}
                       (> systolic 130) (merge {:class "warning"})
                       (> systolic 140) (merge {:class "danger"}))]
 
     (html
       [:tr style
-       [:td]
+       [:td (format-date dateTaken)]
        [:td systolic]
        [:td diastolic]
-       [:td heartRate]])))
+       [:td heartRate]
+       [:td]])))
+
 
 (defn bp-table
   [c props]
   (let [{:keys [user/bpResults]} (get props :current/user)]
+    (println "bpResults: " bpResults)
     (html
       [:.table-responsive
        [:table.table.table-bordered.table-hover.table-striped
@@ -56,7 +108,8 @@
           [:th "Date"]
           [:th "Systolic"]
           [:th "Diastolic"]
-          [:th "Heart Rate"]]]
+          [:th "Heart Rate"]
+          [:th]]]
         [:tbody
          (map bp-result bpResults)]]])))
 

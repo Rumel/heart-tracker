@@ -10,6 +10,7 @@
       <sourceFolder url="file://$MODULE_DIR$/src" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/config" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/test" isTestSource="true" />
+      <sourceFolder url="file://$MODULE_DIR$/src-cljs" isTestSource="false" />
       <excludeFolder url="file://$MODULE_DIR$/target" />
     </content>
     <orderEntry type="inheritedJdk" />
@@ -20,8 +21,13 @@
     <orderEntry type="library" name="Leiningen: clj-fuzzy:0.3.1" level="project" />
     <orderEntry type="library" name="Leiningen: clj-stacktrace:0.2.8" level="project" />
     <orderEntry type="library" name="Leiningen: clj-time:0.9.0" level="project" />
+    <orderEntry type="library" name="Leiningen: cljsjs/flot:0.8.3-0" level="project" />
+    <orderEntry type="library" name="Leiningen: cljsjs/jquery:1.9.0-0" level="project" />
+    <orderEntry type="library" name="Leiningen: cljsjs/moment:2.10.6-4" level="project" />
+    <orderEntry type="library" name="Leiningen: cljsjs/react-datepicker:0.15.2-0" level="project" />
     <orderEntry type="library" name="Leiningen: cljsjs/react-dom:15.0.1-1" level="project" />
     <orderEntry type="library" name="Leiningen: cljsjs/react:15.0.1-1" level="project" />
+    <orderEntry type="library" name="Leiningen: cljsjs/tether:1.1.1-0" level="project" />
     <orderEntry type="library" name="Leiningen: clojure-complete:0.2.4" level="project" />
     <orderEntry type="library" name="Leiningen: clout:2.1.2" level="project" />
     <orderEntry type="library" name="Leiningen: com.cognitect/transit-clj:0.8.275" level="project" />
