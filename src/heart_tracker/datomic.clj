@@ -4,7 +4,7 @@
             [clojure.java.io :as io])
   (:import datomic.Util))
 
-(defrecord Datomic [uri initial-schema conn]
+(defrecord Datomic [uri initial-schema initial-data conn]
   component/Lifecycle
   (start [component]
     (d/create-database uri)
@@ -18,5 +18,6 @@
   (Datomic.
     uri
     (first (Util/readAll (io/reader (io/resource "data/schema.edn"))))
+    (first (Util/readAll (io/reader (io/resource "data/initial.edn"))))
     nil))
 

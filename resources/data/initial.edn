@@ -1,0 +1,6 @@
+[{:db/id #db/id[:db.part/user -1]
+  :user/emailAddress "tyler@givestack.com"
+  :user/systolic 110
+  :user/diastolic 80
+  :user/heartRate 65
+  :user/dateTaken #inst"2016-05-15"}]
