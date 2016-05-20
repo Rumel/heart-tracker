@@ -1,8 +1,8 @@
 (ns heart-tracker.parser
   (:require [om.next.server :as om]
             [io.pedestal.log :refer [info]]
-            [datomic.api :as d]
-            [heart-tracker.model :refer [new-user-tx all-bp-results add-bp-result-tx]]))
+            [datomic.api :as d :refer [q transact]]
+            [heart-tracker.model :refer [new-user-tx all-bp-results add-bp-result-tx bp-tx-log-history]]))
 
 (defmulti readf (fn [_ k _] k))
 (defmulti mutate (fn [_ k _] k))
@@ -36,34 +36,61 @@
   (def uri "datomic:free://localhost:4334/heart-tracker")
   (def conn (d/connect uri))
 
-  ;; Query Examples
-  (d/q '[:find ?user
-         :in $database
-         :where [$database ?user :user/emailAddress]
-         [$database ?user :user/heartRate]] (d/db conn))
-
-  (d/q '[:find ?user
-         :where [?user :user/emailAddress ?email]] (d/db conn) "tyler@givestack.com")
-
-  (d/q '[:find ?aname ?v
-         :in $ ?user
-         :where [?user ?a ?v]
-         [?a :db/ident ?aname]] (d/db conn) [:user/emailAddress "tyler@givestack.com"])
-
-  (d/transact conn [[:db.fn/retractEntity 17592186045449]])
-
+  ;; Create a new user
   @(d/transact conn (new-user-tx "tyler@givestack.com"))
 
-  @(d/transact conn (add-bp-result-tx {:user/emailAddress "tyler@givestack.com"
-                                       :user/systolic     117
-                                       :user/diastolic    58
-                                       :user/heartRate    60
-                                       :user/dateTaken    #inst"2016-05-16"}))
+
+  ;; Get the database value
+  (def db (d/db conn))
+
+  ;; Query Examples
+
+  ;; Query API uses the "q" function
+
+  ;; Include the $database input source
+  (q '[:find ?user
+       :in $database
+       :where [$database ?user :user/emailAddress]
+              [$database ?user :user/heartRate]]
+     db)
+
+  ;; Lookup user by email address
+  (q '[:find ?user
+       :in $ ?email
+       :where [?user :user/emailAddress ?email]]
+     db
+     "tyler@givestack.com")
+
+  ;; Get attributes of a user using the "identity lookup"
+  (q '[:find ?aname ?v
+       :in $ ?user
+       :where [?user ?a ?v]
+              [?a :db/ident ?aname]]
+     db
+     [:user/emailAddress "tyler@givestack.com"])
+
+  ;; Example Transactions
+  ;;
+  @(transact conn [[:db.fn/retractEntity 17592186045449]])
+
+  @(transact conn (new-user-tx "tyler@givestack.com"))
+
+  @(transact conn (add-bp-result-tx {:user/emailAddress "tyler@givestack.com"
+                                     :user/systolic     117
+                                     :user/diastolic    58
+                                     :user/heartRate    60
+                                     :user/dateTaken    #inst"2016-05-16"}))
+
+  ;; Example pull query
   (d/pull (d/db conn) '[:user/emailAddress :user/bpResults] [:user/emailAddress "tyler@givestack.com"])
 
-  (def db-since (d/since (d/db conn) #inst"2016-05-21"))
+  ;; Get the database as a value "since"...
+  (def db-since (d/since (d/db conn) #inst"2016-05-19"))
 
-  (all-bp-results (d/db conn) "tyler@givestack.com")
+
+  (bp-tx-log-history db "tyler@givestack.com")
+
+  (all-bp-results db-since "tyler@givestack.com")
 
   ((om/parser {:read readf :mutate mutate}) {:emailAddress "tyler@givestack.com" :db (d/db conn) :conn conn}
     '[({:current/user

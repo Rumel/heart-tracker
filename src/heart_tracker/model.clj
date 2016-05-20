@@ -43,16 +43,20 @@
   [log-map]
   (mapv (fn [[k v]] (merge {:db/id k} v)) log-map))
 
+(defn bp-tx-log-history
+  [db email]
+  (let [history (d/history db)]
+     (d/q '[:find ?tx ?aname ?v ?inst
+            :in $ ?e
+            :where [?e ?a ?v ?tx true]
+                   [?tx :db/txInstant ?inst]
+                   [?a :db/ident ?aname]
+                   [(not= ?aname :user/emailAddress)]]
+          history [:user/emailAddress email])))
+
 (defn all-bp-results
   "Returns the transaction history of all the BP results."
   [db email]
-  (let [history (d/history db)]
-    (->> (d/q '[:find ?tx ?aname ?v ?inst
-                :in $ ?e
-                :where [?e ?a ?v ?tx true]
-                [?tx :db/txInstant ?inst]
-                [?a :db/ident ?aname]
-                [(not= ?aname :user/emailAddress)]]
-              history [:user/emailAddress email])
-         tx-log->map
-         log-map->vector)))
+  (-> (bp-tx-log-history db email)
+      tx-log->map
+      log-map->vector))
