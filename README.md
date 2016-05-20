@@ -1,5 +1,7 @@
 # heart-tracker
 
+## You need to have a Datomic Free transactor running on your localhost
+
 ## Starting Client Side CLJS Figwheel
 1. `lein run -m clojure.main script/figwheel.clj`
 2. Start Backend
