@@ -13,7 +13,8 @@
   [{:keys [state query]} k _]
   (println "reading")
   (let [st @state]
-    {:value (om/db->tree query (get st k) st)}))
+    {:remote true
+     :value (om/db->tree query (get st k) st)}))
 
 (defmethod mutate :default
   [_ k _]
@@ -36,10 +37,10 @@
                           (update-in [:current/user :user/bpResults]
                                      #(remove #{[:bpResults/by-id id]} %))))))})
 (defmethod mutate 'add/bpResult
-  [{:keys [state]} _ {:keys [db/id systolic diastolic heartRate dateTaken]}]
-  {:value  {:keys [:user/bpResults]}
+  [{:keys [state]} _ {:keys [db/id systolic diastolic heartRate dateTaken] :as params}]
+  {:remote true
+   :value  {:keys [:user/bpResults]}
    :action (fn []
-             (println "ID:" id)
              (swap! state
                     (fn [st]
                       (-> st

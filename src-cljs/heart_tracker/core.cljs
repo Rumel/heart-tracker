@@ -27,7 +27,8 @@
      :heartRate ""
      :dateTaken (js/moment.)})
   (render [this]
-    (let [props (om/props this)]
+    (let [props (om/props this)
+          {:keys [emailAddress]} (om/params this)]
       (html
         [:.conatainer-fluid
          [:.row
@@ -35,7 +36,7 @@
            [:h1.page-header "Heart Information"]]]
          [:.row
           [:.col-sm-4
-           (el/bp-form this props)]
+           (el/bp-form this props emailAddress)]
           [:.col-sm-8
            [:h2 "Results"]
            (el/bp-table this props)]]]))))
@@ -53,11 +54,9 @@
           f (.plot js/jQuery (gdom/getElement "flot-line-chart")
                     (clj->js [data])
                    #js {:label "Heart Rate History"})]
-      (println "data-> " data)
       (om/update-state! this assoc :flot f)))
   (componentDidUpdate [this prevProps prevState]
-    (let [props (om/props this)]
-      (println "Props ->" props)))
+    (let [props (om/props this)]))
   (render [this]
     (html [:.container-fluid
            [:.row
@@ -86,9 +85,10 @@
 (defn page->functions
   [c]
   {:heart-info
-   {:add-info (fn [systolic diastolic heart-rate date-taken]
+   {:add-info (fn [email systolic diastolic heart-rate date-taken]
                 (om/transact! c `[(add/bpResult
-                                    {:systolic ~systolic
+                                    {:emailAddress ~email
+                                     :systolic ~systolic
                                      :diastolic ~diastolic
                                      :heartRate ~heart-rate
                                      :dateTaken ~date-taken
@@ -99,10 +99,10 @@
 (defui RootView
   static om/IQuery
   (query [_]
-    [:app/page
-     {:current/user
-      [:user/emailAddress :user/apiKey
-       {:user/bpResults (om/get-query BpResults)}]}])
+    `[:app/page
+      {:current/user
+          [:user/emailAddress
+           {:user/bpResults ~(om/get-query BpResults)}]}])
   Object
   (initLocalState [_]
     {:user-menu-open? false})
@@ -117,9 +117,6 @@
           (active-component (om/computed
                               props
                               (get (page->functions this) page {})))]]))))
-
-
-
 
 (om/add-root! reconciler RootView (gdom/getElement "app"))
 

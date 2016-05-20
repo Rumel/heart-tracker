@@ -4,6 +4,10 @@
             [clojure.java.io :as io])
   (:import datomic.Util))
 
+;; see
+;; http://www.rkn.io/2014/12/16/datomic-antipatterns-eager-conn/
+;;
+
 (defrecord Datomic [uri initial-schema initial-data conn]
   component/Lifecycle
   (start [component]

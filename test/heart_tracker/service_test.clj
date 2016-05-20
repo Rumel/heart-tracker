@@ -9,8 +9,8 @@
 
 (deftest home-page-test
   (is (=
-       (:body (response-for service :get "/"))
-       "Hello World!"))
+       (:status (response-for service :get "/")))
+      200)
   (is (=
        (:headers (response-for service :get "/"))
        {"Content-Type" "text/html;charset=UTF-8"

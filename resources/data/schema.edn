@@ -5,28 +5,33 @@
   :db/cardinality :db.cardinality/one
   :db/unique :db.unique/identity
   :db/index true
+  :db/doc "The users e-mail address."
   :db.install/_attribute :db.part/db}
 
  {:db/id #db/id[:db.part/db]
   :db/ident :user/heartRate
   :db/valueType :db.type/long
   :db/cardinality :db.cardinality/one
+  :db/doc "The users heart rate."
   :db.install/_attribute :db.part/db}
 
  {:db/id #db/id[:db.part/db]
   :db/ident :user/systolic
   :db/valueType :db.type/long
   :db/cardinality :db.cardinality/one
+  :db/doc "The users systolic measurement."
   :db.install/_attribute :db.part/db}
 
  {:db/id #db/id[:db.part/db]
   :db/ident :user/diastolic
   :db/valueType :db.type/long
   :db/cardinality :db.cardinality/one
+  :db/doc "The users diastolic measurement."
   :db.install/_attribute :db.part/db}
 
  {:db/id #db/id[:db.part/db]
   :db/ident :user/dateTaken
   :db/valueType :db.type/instant
   :db/cardinality :db.cardinality/one
+  :db/doc "The date the meausurement was taken."
   :db.install/_attribute :db.part/db}]

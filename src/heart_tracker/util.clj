@@ -12,3 +12,10 @@
                     (assoc-in [:request :connection] conn)
                     (assoc-in [:request :db] db))))}))
 
+(def wrap-authorize
+  (interceptor
+    {:enter (fn [ctx]
+              (if-let
+                [email (get-in ctx [:request :headers "authorize"])]
+                (assoc-in ctx [:request :emailAddress] email)
+                ctx))}))

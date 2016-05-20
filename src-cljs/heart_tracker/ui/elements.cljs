@@ -36,7 +36,7 @@
     (om/update-state! c assoc :dateTaken date)))
 
 (defn bp-form
-  [c pros]
+  [c props email]
   (let [{:keys [systolic diastolic heartRate dateTaken]} (om/get-state c)
         {:keys [add-info]} (om/get-computed c)]
     (html
@@ -69,7 +69,8 @@
         {:href     "#"
          :on-click #(do
                      (.preventDefault %)
-                     (add-info (js/parseInt systolic)
+                     (add-info email
+                               (js/parseInt systolic)
                                (js/parseInt diastolic)
                                (js/parseInt heartRate)
                                (.toDate dateTaken))
@@ -89,7 +90,7 @@
 
     (html
       [:tr style
-       [:td (format-date dateTaken)]
+       [:td (when dateTaken (format-date dateTaken))]
        [:td systolic]
        [:td diastolic]
        [:td heartRate]
@@ -99,7 +100,6 @@
 (defn bp-table
   [c props]
   (let [{:keys [user/bpResults]} (get props :current/user)]
-    (println "bpResults: " bpResults)
     (html
       [:.table-responsive
        [:table.table.table-bordered.table-hover.table-striped
@@ -111,7 +111,7 @@
           [:th "Heart Rate"]
           [:th]]]
         [:tbody
-         (map bp-result bpResults)]]])))
+         (map bp-result (sort-by :user/dateTaken bpResults))]]])))
 
 
 (defn sidebar

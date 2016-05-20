@@ -1,10 +1,26 @@
 (ns heart-tracker.service
   (:require [io.pedestal.http :as bootstrap]
             [io.pedestal.http.route :as route]
+            [io.pedestal.log :refer [info]]
             [io.pedestal.http.body-params :as body-params]
             [io.pedestal.http.route.definition :refer [defroutes]]
             [ring.util.response :as ring-resp]
-            [clojure.java.io :as io]))
+            [clojure.java.io :as io]
+            [om.next.server :as om]
+            [heart-tracker.util :refer [wrap-authorize]]
+            [heart-tracker.parser :refer [readf mutate]]))
+
+(defn api
+  [request]
+  (info :email (-> request :emailAddress))
+  (let [payload (:transit-params request)
+        resp ((om/parser {:read   readf
+                          :mutate mutate}) {:db (:db request)
+                                                :emailAddress (:emailAddress request)
+                                                       :conn (:connection request)} payload)]
+    (info :payload payload)
+    {:status 200
+     :body resp}))
 
 (defn about-page
   [request]
@@ -24,6 +40,7 @@
   ;; apply to / and its children (/about).
   [[["/" {:get home-page}
      ^:interceptors [(body-params/body-params) bootstrap/html-body]
+     ["/api" ^:interceptors [bootstrap/transit-json-body wrap-authorize] {:any api}]
      ["/about" {:get about-page}]]]])
 
 ;; Consumed by heart-tracker.server/create-server
