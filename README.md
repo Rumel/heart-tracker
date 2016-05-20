@@ -1,8 +1,10 @@
 # heart-tracker
 
-FIXME
+## Starting Client Side CLJS Figwheel
+1. `lein run -m clojure.main script/figwheel.clj`
+2. Start Backend
 
-## Getting Started
+## Getting Backend Started
 
 1. Start the application: `lein run-dev` \*
 2. Go to [localhost:8080](http://localhost:8080/) to see: `Hello World!`
