@@ -1,5 +1,5 @@
 [{:db/id #db/id[:db.part/user -1]
-  :user/emailAddress "tyler@givestack.com"
+  :user/emailAddress "test@test.com"
   :user/systolic 110
   :user/diastolic 80
   :user/heartRate 65

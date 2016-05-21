@@ -37,7 +37,7 @@
   (def conn (d/connect uri))
 
   ;; Create a new user
-  @(d/transact conn (new-user-tx "tyler@givestack.com"))
+  @(d/transact conn (new-user-tx "test@test.com"))
 
 
   ;; Get the database value
@@ -59,7 +59,7 @@
        :in $ ?email
        :where [?user :user/emailAddress ?email]]
      db
-     "tyler@givestack.com")
+     "test@test.com")
 
   ;; Get attributes of a user using the "identity lookup"
   (q '[:find ?aname ?v
@@ -67,37 +67,37 @@
        :where [?user ?a ?v]
               [?a :db/ident ?aname]]
      db
-     [:user/emailAddress "tyler@givestack.com"])
+     [:user/emailAddress "test@test.com"])
 
   ;; Example Transactions
   ;;
   @(transact conn [[:db.fn/retractEntity 17592186045449]])
 
-  @(transact conn (new-user-tx "tyler@givestack.com"))
+  @(transact conn (new-user-tx "test@test.com"))
 
-  @(transact conn (add-bp-result-tx {:user/emailAddress "tyler@givestack.com"
+  @(transact conn (add-bp-result-tx {:user/emailAddress "test@test.com"
                                      :user/systolic     117
                                      :user/diastolic    58
                                      :user/heartRate    60
                                      :user/dateTaken    #inst"2016-05-16"}))
 
   ;; Example pull query
-  (d/pull (d/db conn) '[:user/emailAddress :user/bpResults] [:user/emailAddress "tyler@givestack.com"])
+  (d/pull (d/db conn) '[:user/emailAddress :user/bpResults] [:user/emailAddress "test@test.com"])
 
   ;; Get the database as a value "since"...
   (def db-since (d/since (d/db conn) #inst"2016-05-19"))
 
 
-  (bp-tx-log-history db "tyler@givestack.com")
+  (bp-tx-log-history db "test@test.com")
 
-  (all-bp-results db-since "tyler@givestack.com")
+  (all-bp-results db-since "test@test.com")
 
-  ((om/parser {:read readf :mutate mutate}) {:emailAddress "tyler@givestack.com" :db (d/db conn) :conn conn}
+  ((om/parser {:read readf :mutate mutate}) {:emailAddress "test@test.com" :db (d/db conn) :conn conn}
     '[({:current/user
         [:user/emailAddress
          :user/bpResults]})])
 
-  ((om/parser {:read readf :mutate mutate}) {:conn conn :emailAddress "tyler@givestack.com"} '[(add/bpResult {:user/systolic 112}
+  ((om/parser {:read readf :mutate mutate}) {:conn conn :emailAddress "test@test.com"} '[(add/bpResult {:user/systolic 112
                                                                                                              :user/diastolic 80
                                                                                                              :user/heartRate 75
-                                                                                                             :user/dateTaken #inst"2016-04-20")]))
+                                                                                                             :user/dateTaken #inst"2016-04-20"})]))
