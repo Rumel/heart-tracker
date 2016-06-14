@@ -8,7 +8,12 @@
             [clojure.java.io :as io]
             [om.next.server :as om]
             [heart-tracker.util :refer [wrap-authorize]]
-            [heart-tracker.parser :refer [readf mutate]]))
+            [heart-tracker.parser :refer [readf mutate]]
+            [io.pedestal.interceptor.helpers :as interceptor]
+            [cognitect.transit :as transit]
+            [heart-tracker.model :as model])
+  (:import (java.io OutputStream)
+           (heart_tracker.model BpResult)))
 
 (defn api
   [request]
@@ -28,6 +33,23 @@
                               (clojure-version)
                               (route/url-for ::about-page))))
 
+(def transit-json-body
+  (interceptor/on-response
+    ::transit-json-body
+    (fn [res]
+      (let [body (:body res)
+            content-type (get-in res [:headers "Content-Type"])]
+        (if (and  (coll? body) (not content-type))
+          (-> res
+              (ring-resp/content-type "application/transit+json;charset=UTF-8")
+              (assoc :body (fn [^OutputStream output-stream]
+                             (transit/write (transit/writer
+                                              output-stream
+                                              :json
+                                              {:handlers {BpResult model/BpResultWriteHandler}}) body)
+                             (.flush output-stream))))
+          res)))))
+
 (defn home-page
   [request]
   (ring-resp/response
@@ -40,7 +62,7 @@
   ;; apply to / and its children (/about).
   [[["/" {:get home-page}
      ^:interceptors [(body-params/body-params) bootstrap/html-body]
-     ["/api" ^:interceptors [bootstrap/transit-json-body wrap-authorize] {:any api}]
+     ["/api" ^:interceptors [transit-json-body wrap-authorize] {:any api}]
      ["/about" {:get about-page}]]]])
 
 ;; Consumed by heart-tracker.server/create-server

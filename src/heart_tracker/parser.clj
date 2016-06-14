@@ -90,7 +90,7 @@
 
   (bp-tx-log-history db "test@test.com")
 
-  (all-bp-results db-since "test@test.com")
+  (all-bp-results db "test@test.com")
 
   ((om/parser {:read readf :mutate mutate}) {:emailAddress "test@test.com" :db (d/db conn) :conn conn}
     '[({:current/user

@@ -1,5 +1,30 @@
 (ns heart-tracker.model
-  (:require [datomic.api :as d]))
+  (:require [datomic.api :as d]
+            [cognitect.transit :as transit])
+  (:import (java.io ByteArrayOutputStream)))
+
+(defrecord BpResult [id systolic diastolic heart-rate date-taken])
+
+(def BpResultWriteHandler
+  (transit/write-handler (fn [bp-result] "bpResult")
+                         (fn [bp-result] [(.id bp-result)
+                                          (.systolic bp-result)
+                                          (.diastolic bp-result)
+                                          (.heart-rate bp-result)
+                                          (.date-taken bp-result)])))
+
+(defn write [x]
+  (let [baos (ByteArrayOutputStream.)
+        writer (transit/writer baos :json
+                               {:handlers {BpResult BpResultWriteHandler}})
+        _ (transit/write writer x)
+        result (.toString baos)]
+    (.reset baos)
+    result))
+
+(comment
+  (def bp-result (BpResult. 1 110 90 65 (java.util.Date.)))
+  (print (write bp-result)))
 
 (defn user-id
   [db email]
@@ -11,7 +36,7 @@
 
 (defn new-user-tx
   [email]
-  [{:db/id             (d/tempid :db.part/user)
+  [{:db/id (d/tempid :db.part/user)
     :user/emailAddress email}])
 
 (defn user
@@ -54,9 +79,30 @@
                    [(not= ?aname :user/emailAddress)]]
           history [:user/emailAddress email])))
 
+(comment
+  (def uri "datomic:free://localhost:4334/heart-tracker")
+  (def conn (d/connect uri))
+  (def db (d/db conn)))
+
 (defn all-bp-results
-  "Returns the transaction history of all the BP results."
   [db email]
-  (-> (bp-tx-log-history db email)
-      tx-log->map
-      log-map->vector))
+  (->> (bp-tx-log-history db email)
+       tx-log->map
+       log-map->vector
+       (mapv (fn [{:keys [db/id
+                          user/systolic
+                          user/diastolic
+                          user/heartRate
+                          user/dateTaken]}]
+               (BpResult. id systolic diastolic heartRate dateTaken)))))
+
+#_(all-bp-results db "test@test.com")
+
+
+#_(defn all-bp-results
+    "Returns the transaction history of all the BP results."
+    [db email
+     (-> (bp-tx-log-history db email)
+         tx-log->map
+         log-map->vector)])
+
